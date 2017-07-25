@@ -1,1 +1,0 @@
-mongod -dbpath=/Users/ShawnLin/Desktop/workspace/workspace_python/mongodb

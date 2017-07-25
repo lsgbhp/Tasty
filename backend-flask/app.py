@@ -1,11 +1,13 @@
-from flask import Flask
-from flask import make_response
+from flask import Flask, make_response, request
 from pymongo import MongoClient
+from bson import ObjectId
 import json
 import functools
+import datetime
 
 app = Flask(__name__)
-data_list = []
+db_client = None
+db_collection = None
 
 def allow_cross_domain(fun):
     @functools.wraps(fun)
@@ -18,21 +20,41 @@ def allow_cross_domain(fun):
         return rst
     return wrapper_fun
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 @allow_cross_domain
 def index():
+    page_size = request.args.get('pageSize')
+    last_oid = request.args.get('lastOId')
     respJson = {'respCode': 1000,
                 'respMsg': 'succ',
-                'respData': data_list }
-    return json.dumps(respJson)
+                'respData': fetch_index_data(page_size, last_oid) }
+    jsonString = json.dumps(respJson)
+    return jsonString
 
-def fetch_data():
-    db_client = MongoClient()
-    db_collection = db_client.get_database('test').get_collection('eyepetizer-food')
-    for item in db_collection.find({}, {'_id': False}):
-        data_list.append(item)
-    db_client.close()
+def fetch_index_data(page_size, last_oid):
+    page_size = int(page_size) if page_size != None else 2
+    result = db_collection.find().limit(page_size) if last_oid == None \
+        else db_collection.find({'_id': {"$gt": ObjectId(last_oid)}}).limit(page_size)
+    def filterOId(item):
+        item['oid'] = str(item['_id'])
+        del item['_id']
+        return item
+    return list(map(filterOId, result))
+
+def get_db():
+    global db_client, db_collection
+    if not db_client:
+        db_client = MongoClient()
+        db_collection = db_client.get_database('eyepetizer').get_collection('food')
+
+@app.teardown_appcontext
+def close_db(error):
+    if db_client:
+        db_client.close()
 
 if __name__ == '__main__':
-    fetch_data()
-    app.run(host='0.0.0.0')
+    get_db()
+    app.run(host='0.0.0.0',
+            port=5000,
+            debug=False,
+            threaded=True)

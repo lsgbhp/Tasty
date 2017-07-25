@@ -48,12 +48,12 @@ def parse_data(data):
     if isinstance(data, str):
         jsonData = json.loads(data)
         for item in jsonData['itemList']:
-            id = item['data']['content']['data']['id']
+            id = item['data']['id']
             print('{ id: %d }' % (id))
 
             exist_record = (DB_COLLECTION.find_one({ 'id': id }))
             if exist_record == None:
-                DB_COLLECTION.insert_one({'id': id, 'title': title, 'description': description, 'video_url': video_url})
+                DB_COLLECTION.insert_one({'id': id, 'data': item['data']})
             else:
                 return None
         try:
