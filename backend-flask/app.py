@@ -32,7 +32,7 @@ def index():
     return jsonString
 
 def fetch_index_data(page_size, last_oid):
-    page_size = int(page_size) if page_size != None else 2
+    page_size = int(page_size) if page_size != None else 10
     result = db_collection.find().limit(page_size) if last_oid == None \
         else db_collection.find({'_id': {"$gt": ObjectId(last_oid)}}).limit(page_size)
     def filterOId(item):
