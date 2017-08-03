@@ -1,1 +1,1 @@
-python3 ./backend-flask/app.py
+python3 ../backend-flask/app.py

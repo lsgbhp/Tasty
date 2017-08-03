@@ -51,7 +51,7 @@ export default {
     fetchData () {
       if (this.isLoading) return
       this.isLoading = true
-      this.$GET('http://192.168.102.10:5000', {
+      this.$GET('/api/index', {
         pageSize: this.pageSize,
         lastOId: this.lastVideoOId
       }).then((data) => {

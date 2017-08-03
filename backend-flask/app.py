@@ -6,6 +6,8 @@ import functools
 import datetime
 
 app = Flask(__name__)
+MONGO_DATABASE = 'eyepetizer'
+MONGO_COLLECTION = 'food'
 db_client = None
 db_collection = None
 
@@ -20,7 +22,7 @@ def allow_cross_domain(fun):
         return rst
     return wrapper_fun
 
-@app.route('/', methods=['GET'])
+@app.route('/api/index', methods=['GET'])
 @allow_cross_domain
 def index():
     page_size = request.args.get('pageSize')
@@ -45,7 +47,7 @@ def get_db():
     global db_client, db_collection
     if not db_client:
         db_client = MongoClient()
-        db_collection = db_client.get_database('eyepetizer').get_collection('food')
+        db_collection = db_client.get_database(MONGO_DATABASE).get_collection(MONGO_COLLECTION)
 
 @app.teardown_appcontext
 def close_db(error):
@@ -54,7 +56,6 @@ def close_db(error):
 
 if __name__ == '__main__':
     get_db()
-    app.run(host='0.0.0.0',
-            port=5000,
+    app.run(port=5000,
             debug=False,
             threaded=True)
