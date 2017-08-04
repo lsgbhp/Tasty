@@ -6,7 +6,6 @@
 * [阿里云Python+Flask](https://zhuanlan.zhihu.com/p/22126999)
 * [centos install python3](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-centos-7)
 * centos下yum install安装的nginx没有etc/nginx/sites-available目录，可直接将配置文件放在conf.d/文件夹下，并在nginx.conf的http的block中include。[参考](https://stackoverflow.com/questions/17413526/nginx-missing-sites-available-directory)
-* [nginx科普](https://fraserxu.me/2013/06/22/Nginx-for-developers/)
 * centos service和chkconfig命令替换为systemctl。[参考](https://cnzhx.net/blog/centos-7-rhel-7-systemd-commands/)
 
 ### MongoDB

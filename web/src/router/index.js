@@ -5,6 +5,7 @@ import VideoList from '@/components/video-list.vue'
 Vue.use(Router)
 
 export default new Router({
+  mode: 'history',  // 这样URL中不会存在/#/的形式
   routes: [
     {
       path: '/',
