@@ -3,13 +3,13 @@ from pymongo import MongoClient
 from bson import ObjectId
 import json
 import functools
-import datetime
+import config
 
 app = Flask(__name__)
-MONGO_DATABASE = 'eyepetizer'
-MONGO_COLLECTION = 'food'
-db_client = None
-db_collection = None
+
+db_client = MongoClient()
+db_collection_popular = db_client[config.DATABASE][config.COLLECTION_POPULAR]
+db_collection_recent = db_client[config.DATABASE][config.COLLECTION_RECENT]
 
 def allow_cross_domain(fun):
     @functools.wraps(fun)
@@ -22,18 +22,34 @@ def allow_cross_domain(fun):
         return rst
     return wrapper_fun
 
+
 @app.route('/api/index', methods=['GET'])
 @allow_cross_domain
 def index():
     page_size = request.args.get('pageSize')
     last_oid = request.args.get('lastOId')
-    respJson = {'respCode': 1000,
-                'respMsg': 'succ',
-                'respData': fetch_index_data(page_size, last_oid) }
+    respJson = {
+        'respCode': 1000,
+        'respMsg': 'succ',
+        'respData': fetch_data(db_collection_recent, page_size, last_oid)
+    }
     jsonString = json.dumps(respJson)
     return jsonString
 
-def fetch_index_data(page_size, last_oid):
+@app.route('/api/popular', methods=['GET'])
+@allow_cross_domain
+def popular():
+    page_size = request.args.get('pageSize')
+    last_oid = request.args.get('lastOId')
+    respJson = {
+        'respCode': 1000,
+        'respMsg': 'succ',
+        'respData': fetch_data(db_collection_popular, page_size, last_oid)
+    }
+    jsonString = json.dumps(respJson)
+    return jsonString
+
+def fetch_data(db_collection, page_size, last_oid):
     page_size = int(page_size) if page_size != None else 10
     result = db_collection.find().limit(page_size) if last_oid == None \
         else db_collection.find({'_id': {"$gt": ObjectId(last_oid)}}).limit(page_size)
@@ -43,19 +59,13 @@ def fetch_index_data(page_size, last_oid):
         return item
     return list(map(filterOId, result))
 
-def get_db():
-    global db_client, db_collection
-    if not db_client:
-        db_client = MongoClient()
-        db_collection = db_client.get_database(MONGO_DATABASE).get_collection(MONGO_COLLECTION)
-
 @app.teardown_appcontext
 def close_db(error):
     if db_client:
         db_client.close()
 
 if __name__ == '__main__':
-    get_db()
-    app.run(port=5000,
+    app.run(host='0.0.0.0',
+            port=5000,
             debug=False,
             threaded=True)

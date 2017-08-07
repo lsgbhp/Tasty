@@ -2,6 +2,7 @@ import config
 import requests
 from requests.exceptions import RequestException
 import json
+import time
 import pymongo
 from pymongo import MongoClient
 
@@ -21,10 +22,6 @@ db_client = MongoClient()
 db_collection_popular = db_client[config.DATABASE][config.COLLECTION_POPULAR]
 db_collection_recent = db_client[config.DATABASE][config.COLLECTION_RECENT]
 
-def setup_database():
-    db_collection_popular.create_index ([('id', pymongo.ASCENDING)], unique=True)
-    db_collection_recent.create_index ([('id', pymongo.DESCENDING)], unique=True)
-
 def shutdown_database():
     if (db_client):
         db_client.close()
@@ -38,52 +35,60 @@ def request_data(url):
     except RequestException:
         return None
 
-request_times_popular = 10
-def parse_popular_data(data):
-    if not(isinstance(data, str)):  return
-
-    jsonData = json.loads(data)
-    for item in jsonData['itemList']:
-        id = item['data']['id']
-        exist_record = (db_collection_popular.find_one({ 'id': id }))
-        if exist_record == None:
+def fetch_popular_data():
+    request_times_popular = 10
+    def parse_popular_data(data):
+        if not(isinstance(data, str)):  return
+        jsonData = json.loads(data)
+        for item in jsonData['itemList']:
+            id = item['data']['id']
             print ('{insert popular data, id: %d }' % (id))
-            db_collection_popular.insert_one({'id': id, 'data': item['data']})
+            db_collection_popular.insert_one({
+                'id': id,
+                'data': item['data']
+            })
+        nonlocal request_times_popular
+        request_times_popular = request_times_popular - 1
+        if request_times_popular > 0:
+            try:
+                parse_popular_data(request_data(jsonData['nextPageUrl']))
+            except KeyError:
+                pass
 
-    global request_times_popular
-    request_times_popular = request_times_popular - 1
-    if request_times_popular > 0:
-        try:
-            parse_popular_data(request_data(jsonData['nextPageUrl']))
-        except KeyError:
-            pass
+    db_collection_popular.drop()
+    db_collection_popular.create_index ('id', unique=True)
+    parse_popular_data (request_data ('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4&strategy=mostPopular'))
 
-request_times_recent = 20
-def parse_recent_data(data):
-    if not (isinstance (data, str)):  return
+def fetch_rencent_data():
+    request_times_recent = 20
+    def parse_recent_data(data):
+        if not (isinstance (data, str)):  return
+        jsonData = json.loads(data)
+        for item in jsonData['itemList']:
+            id = item['data']['id']
+            exist_record = (db_collection_recent.find_one({ 'id': id }))
+            if exist_record == None:
+                print ('{insert recent data, id: %d }' % (id))
+                db_collection_recent.insert_one({
+                    'id': id,
+                    'data': item['data']
+                })
+            else:
+                return
+        nonlocal request_times_recent
+        request_times_recent = request_times_recent - 1
+        if request_times_recent > 0:
+            try:
+                parse_recent_data(request_data(jsonData['nextPageUrl']))
+            except KeyError:
+                pass
 
-    jsonData = json.loads(data)
-    for item in jsonData['itemList']:
-        id = item['data']['id']
-        exist_record = (db_collection_recent.find_one({ 'id': id }))
-        if exist_record == None:
-            print ('{insert recent data, id: %d }' % (id))
-            db_collection_recent.insert_one({'id': id, 'data': item['data']})
-        else:
-            return
-
-    global request_times_recent
-    request_times_recent = request_times_recent - 1
-    if request_times_recent > 0:
-        try:
-            parse_recent_data(request_data(jsonData['nextPageUrl']))
-        except KeyError:
-            pass
+    db_collection_recent.create_index('id', unique=True)
+    parse_recent_data (request_data ('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4'))
 
 def main():
-    setup_database()
-    parse_recent_data(request_data('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4'))
-    parse_popular_data(request_data('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4&strategy=mostPopular'))
+    fetch_rencent_data()
+    fetch_popular_data()
     shutdown_database()
 
 if __name__ == '__main__':
