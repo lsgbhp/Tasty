@@ -30,18 +30,19 @@ export default {
 
 <style>
 .video-item {
-  border-bottom: 1px solid gainsboro;
-  padding: 12px 0;
+  border-bottom: 1px solid lavender;
+  padding: 8px 0;
 }
 .video-item:last-child {
   border: none;
 }
 .video-item p {
   margin: 10px;
+  font-size: 0.8rem;
 }
 .video-item .title {
   text-align: center;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 .video-item .media {
   width: 100%;

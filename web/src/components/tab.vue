@@ -45,9 +45,10 @@ export default {
 .tab-item {
   flex: 1;
   text-align: center;
+  font-size: 0.9rem;
 }
 .tab-item.selected {
-  color: dodgerblue;
-  border-bottom: 1px solid skyblue;
+  color: orange;
+  border-bottom: 1px solid orange;
 }
 </style>
