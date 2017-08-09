@@ -1,10 +1,10 @@
 <template>
   <div class="video-list">
-    <video-item v-for="item in videos" :key="item.id"
+    <video-item v-for="item in videos" :key="item.id" @PlayVideo="subVideoPlay"
       :id="item.id"
       :title="item.data.title"
       :description="item.data.description"
-      :isPlayVideo="item.isPlayVideo"
+      :pauseFlag="item.pauseFlag"
       :coverImgUrl="item.data.cover.feed"
       :videoUrl="item.data.playUrl">
     </video-item>
@@ -52,7 +52,7 @@ export default {
         this.isLoading = false
         if (data.respData.length > 0) {
           for (let item of data.respData) {
-            item.isPlayVideo = false
+            item.pauseFlag = true
           }
           this.videos.push(...data.respData)
           this.$refs.infiniteLoading && this.$refs.infiniteLoading.$emit('$InfiniteLoading:loaded')
@@ -67,6 +67,12 @@ export default {
     },
     onInfinite () {
       this.fetchData()
+    },
+    subVideoPlay (id) {
+      console.log('trigger subVideoPlay')
+      for (let item of this.videos) {
+        item.pauseFlag = (item.id !== id)
+      }
     }
   },
   mounted () {

@@ -2,8 +2,8 @@
   <div class="video-item">
     <p class="title">{{ title }}</p>
     <div class="media">
-      <div class="image" v-show="!isPlayVideo" :style="{'background-image': 'url(' + coverImgUrl + ')'}"></div>
-      <video v-if="isPlayVideo" :src="videoUrl" autoplay preload="metadata" :height="videoHeight" controls webkit-playsinline></video>
+      <div class="image" v-show="!isPlayVideo" @click="playVideo(id)" :style="{'background-image': 'url(' + coverImgUrl + ')'}"></div>
+      <video ref="video" v-if="isPlayVideo" @play="$emit('PlayVideo', id)" :src="videoUrl" autoplay preload="metadata" :height="videoHeight" controls webkit-playsinline></video>
     </div>
     <p>{{ description }}</p>
   </div>
@@ -16,13 +16,31 @@ export default {
     id: Number,
     title: String,
     description: String,
-    isPlayVideo: Boolean,
+    pauseFlag: Boolean,
     coverImgUrl: String,
     videoUrl: String
   },
+  data () {
+    return {
+      isPlayVideo: false
+    }
+  },
+  watch: {
+    pauseFlag (val, oldVal) {
+      if (val && !oldVal) {
+        this.$refs.video.pause()
+      }
+    }
+  },
   computed: {
     videoHeight () {
-      return (document.body.clientWidth - 20) * 0.5625
+      return (document.body.clientWidth > 640 ? 640 : document.body.clientWidth) * 0.5625
+    }
+  },
+  methods: {
+    playVideo (id) {
+      this.$emit('PlayVideo', id)
+      this.isPlayVideo = true
     }
   }
 }
