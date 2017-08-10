@@ -39,6 +39,9 @@ export default {
   computed: {
     lastVideoOId () {
       return this.videos.length > 0 ? this.videos[this.videos.length - 1].oid : null
+    },
+    lastVideoId () {
+      return this.videos.length > 0 ? this.videos[this.videos.length - 1].id : null
     }
   },
   methods: {
@@ -47,7 +50,8 @@ export default {
       this.isLoading = true
       this.$GET(this.url, {
         pageSize: this.pageSize,
-        lastOId: this.lastVideoOId
+        lastOId: this.lastVideoOId,
+        lastId: this.lastVideoId
       }).then((data) => {
         this.isLoading = false
         if (data.respData.length > 0) {
@@ -69,7 +73,6 @@ export default {
       this.fetchData()
     },
     subVideoPlay (id) {
-      console.log('trigger subVideoPlay')
       for (let item of this.videos) {
         item.pauseFlag = (item.id !== id)
       }

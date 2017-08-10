@@ -36,7 +36,7 @@ def request_data(url):
         return None
 
 def fetch_popular_data():
-    request_times_popular = 10
+    request_times_popular = config.REQUEST_TIMES_POPULAR
     def parse_popular_data(data):
         if not(isinstance(data, str)):  return
         jsonData = json.loads(data)
@@ -60,7 +60,7 @@ def fetch_popular_data():
     parse_popular_data (request_data ('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4&strategy=mostPopular'))
 
 def fetch_rencent_data():
-    request_times_recent = 20
+    request_times_recent = config.REQUEST_TIMES_RECENT
     def parse_recent_data(data):
         if not (isinstance (data, str)):  return
         jsonData = json.loads(data)
@@ -83,7 +83,7 @@ def fetch_rencent_data():
             except KeyError:
                 pass
 
-    db_collection_recent.create_index('id', unique=True)
+    db_collection_recent.create_index([('id', pymongo.DESCENDING)], unique=True)
     parse_recent_data (request_data ('https://baobab.kaiyanapp.com/api/v4/categories/videoList?id=4'))
 
 def main():

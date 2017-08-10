@@ -8,11 +8,11 @@
       <tab :titles="tabTitle" :firstSelected="tabTitle[0]" v-model="selectedTab"></tab>
     </div>
     <div class="home-container">
-      <video-list url="http://localhost:5000/api/index"
+      <video-list url="/api/index"
         v-show="selectedTab === tabTitle[0]"
         :isShow="selectedTab === tabTitle[0]">
       </video-list>  
-      <video-list url="http://localhost:5000/api/popular"
+      <video-list url="/api/popular"
         v-show="selectedTab === tabTitle[1]" 
         :isShow="selectedTab === tabTitle[1]">
       </video-list> 

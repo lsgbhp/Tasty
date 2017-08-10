@@ -1,4 +1,5 @@
 from flask import Flask, make_response, request
+import pymongo
 from pymongo import MongoClient
 from bson import ObjectId
 import json
@@ -27,11 +28,11 @@ def allow_cross_domain(fun):
 @allow_cross_domain
 def index():
     page_size = request.args.get('pageSize')
-    last_oid = request.args.get('lastOId')
+    last_id = request.args.get('lastId')
     respJson = {
         'respCode': 1000,
         'respMsg': 'succ',
-        'respData': fetch_data(db_collection_recent, page_size, last_oid)
+        'respData': fetch_recent_data(page_size, last_id)
     }
     jsonString = json.dumps(respJson)
     return jsonString
@@ -44,15 +45,25 @@ def popular():
     respJson = {
         'respCode': 1000,
         'respMsg': 'succ',
-        'respData': fetch_data(db_collection_popular, page_size, last_oid)
+        'respData': fetch_popular_data(page_size, last_oid)
     }
     jsonString = json.dumps(respJson)
     return jsonString
 
-def fetch_data(db_collection, page_size, last_oid):
+def fetch_recent_data(page_size, last_id):
     page_size = int(page_size) if page_size != None else 10
-    result = db_collection.find().limit(page_size) if last_oid == None \
-        else db_collection.find({'_id': {"$gt": ObjectId(last_oid)}}).limit(page_size)
+    result = db_collection_recent.find().sort([('id', pymongo.DESCENDING)]).limit(page_size) if last_id == None \
+        else db_collection_recent.find({'id': {"$lt": int(last_id)}}).sort([('id', pymongo.DESCENDING)]).limit(page_size)
+    def filterOId(item):
+        item['oid'] = str(item['_id'])
+        del item['_id']
+        return item
+    return list(map(filterOId, result))
+
+def fetch_popular_data(page_size, last_oid):
+    page_size = int(page_size) if page_size != None else 10
+    result = db_collection_popular.find().limit(page_size) if last_oid == None \
+        else db_collection_popular.find({'_id': {"$gt": ObjectId(last_oid)}}).limit(page_size)
     def filterOId(item):
         item['oid'] = str(item['_id'])
         del item['_id']
